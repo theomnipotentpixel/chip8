@@ -488,8 +488,8 @@ impl Chip8 {
 #[command(version, about, long_about = None)]
 struct Args {
     /// Path of the rom
-    #[arg(long, default_value_t = String::new())]
-    rom: String,
+    #[arg(long)]
+    rom: Option<String>,
 
     /// Milliseconds per step
     #[arg(short, long, default_value_t = 3)]
@@ -503,10 +503,7 @@ async fn main() {
     let screen_scale = 16;
     let mut state: Chip8 = Chip8::new();
     let mut rom = args.rom;
-    if rom == "" {
-        rom = "res/test_opcode.ch8".to_string();
-    }
-    state.load_rom(rom.as_str());
+    state.load_rom(&*rom.unwrap_or("res/test_opcode.ch8".parse().unwrap()));
     request_new_screen_size((64*screen_scale) as f32, (32*screen_scale) as f32);
     next_frame().await;
     clear_background(WHITE);
