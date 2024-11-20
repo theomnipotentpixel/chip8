@@ -1,6 +1,6 @@
 use macroquad::prelude::*;
 use std::fs;
-use std::time::Duration;
+use clap::Parser;
 use macroquad::rand::rand;
 
 struct Chip8 {
@@ -351,67 +351,67 @@ impl Chip8 {
     pub fn op_fx0a(&mut self) {
         let vx = ((self.opcode & 0xf00) >> 8) as usize;
 
-        if (self.keypad[0])
+        if self.keypad[0]
         {
             self.registers[vx] = 0;
         }
-        else if (self.keypad[1])
+        else if self.keypad[1]
         {
             self.registers[vx] = 1;
         }
-        else if (self.keypad[2])
+        else if self.keypad[2]
         {
             self.registers[vx] = 2;
         }
-        else if (self.keypad[3])
+        else if self.keypad[3]
         {
             self.registers[vx] = 3;
         }
-        else if (self.keypad[4])
+        else if self.keypad[4]
         {
             self.registers[vx] = 4;
         }
-        else if (self.keypad[5])
+        else if self.keypad[5]
         {
             self.registers[vx] = 5;
         }
-        else if (self.keypad[6])
+        else if self.keypad[6]
         {
             self.registers[vx] = 6;
         }
-        else if (self.keypad[7])
+        else if self.keypad[7]
         {
             self.registers[vx] = 7;
         }
-        else if (self.keypad[8])
+        else if self.keypad[8]
         {
             self.registers[vx] = 8;
         }
-        else if (self.keypad[9])
+        else if self.keypad[9]
         {
             self.registers[vx] = 9;
         }
-        else if (self.keypad[10])
+        else if self.keypad[10]
         {
             self.registers[vx] = 10;
         }
-        else if (self.keypad[11])
+        else if self.keypad[11]
         {
             self.registers[vx] = 11;
         }
-        else if (self.keypad[12])
+        else if self.keypad[12]
         {
             self.registers[vx] = 12;
         }
-        else if (self.keypad[13])
+        else if self.keypad[13]
         {
             self.registers[vx] = 13;
         }
-        else if (self.keypad[14])
+        else if self.keypad[14]
         {
             self.registers[vx] = 14;
         }
-        else if (self.keypad[15])
+        else if self.keypad[15]
         {
             self.registers[vx] = 15;
         }
@@ -484,11 +484,29 @@ impl Chip8 {
     }
 }
 
+#[derive(Parser, Debug)]
+#[command(version, about, long_about = None)]
+struct Args {
+    /// Path of the rom
+    #[arg(long, default_value_t = String::new())]
+    rom: String,
+
+    /// Milliseconds per step
+    #[arg(short, long, default_value_t = 3)]
+    delay: u16,
+}
+
 #[macroquad::main("Chip 8 Emulator")]
 async fn main() {
+    let args = Args::parse();
+
     let screen_scale = 16;
     let mut state: Chip8 = Chip8::new();
-    state.load_rom("res/tetris.ch8");
+    let mut rom = args.rom;
+    if rom == "" {
+        rom = "res/test_opcode.ch8".to_string();
+    }
+    state.load_rom(rom.as_str());
     request_new_screen_size((64*screen_scale) as f32, (32*screen_scale) as f32);
     next_frame().await;
     clear_background(WHITE);
@@ -499,7 +517,7 @@ async fn main() {
         if is_key_down(KeyCode::Escape) {
             break;
         }
-        if last_cycle.elapsed().as_millis() > 3 {
+        if last_cycle.elapsed().as_millis() > args.delay as u128 {
             last_cycle = std::time::Instant::now();
 
             state.update_keys();
